@@ -32,16 +32,15 @@
     #fPlace { font-size: clamp(18px, 3vh, 28px); font-weight: 800; }
     #fSub { font-size: 16px; }
     
-    /* CRVENA INFO BOJA */
-    #fInfo { font-size: 22px; color: #ff3131; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
-    .info-tag { color: #ff3131; font-weight: 900; font-size: 11px; animation: blinkInfo 1s infinite; }
+    /* CRVENA INFO BOJA - STROGO DEFINISANA */
+    #fInfo { font-size: 22px; color: #ff3131 !important; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
+    .info-tag { color: #ff3131 !important; font-weight: 900; font-size: 11px; animation: blinkInfo 1s infinite; }
 
     @keyframes yellowPulse { 
         0% { border-color: rgba(255, 255, 255, 0.1); box-shadow: 0 0 0 transparent; } 
         100% { border-color: #fbbf24; box-shadow: 0 0 30px rgba(251, 191, 36, 0.5); } 
     }
     .blink-warning { animation: yellowPulse 0.8s infinite alternate ease-in-out; border-width: 4px !important; }
-    
     @keyframes blinkInfo { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     
     .day-sep { border-bottom: 2px solid rgba(255,255,255,0.5); margin: 20px 0 10px; font-size: 14px; font-weight: 900; color: #ffffff !important; text-transform: uppercase; }
@@ -67,7 +66,7 @@
             <button onclick="markDone()" class="btn-premium w-full py-4 rounded-xl text-xl font-black active:scale-95 uppercase tracking-widest">ABHOLBEREIT</button>
         </div>
         
-        <h2 id="dayLabel" class="text-white font-black mb-2 px-1 uppercase text-[12px] tracking-widest border-b border-white/20 pb-1"></h2>
+        <h2 id="dayLabel" class="text-white font-black mb-2 px-1 uppercase text-[12px] tracking-widest border-b border-white/20 pb-1">LIEFERPLAN</h2>
     </section>
 
     <section id="planList" class="flex-1">
@@ -96,6 +95,7 @@ function handleLongPress(key) {
 function getFullItems() {
     const now = new Date();
     const dayNames = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+    
     const createDay = (date) => {
         let dIdx = date.getDay();
         let plan = (dIdx >= 1 && dIdx <= 5) ? [...planWeekdayBase] : (dIdx === 6 ? [...planSaturday] : [...planSunday]);
@@ -110,32 +110,37 @@ function getFullItems() {
             return {...i, dt, dayName: dayNames[dIdx], key: dayNames[dIdx] + "_" + i.time + "_" + i.label};
         });
     };
+    // Spajamo današnji i sutrašnji plan
     return [...createDay(now), ...createDay(new Date(now.getTime() + 86400000))];
 }
 
 function update() {
     const now = new Date();
     if (now.getDate() !== lastUpdateDay) { manualSkip = 0; lastUpdateDay = now.getDate(); }
+    
     const items = getFullItems();
     let autoIndex = items.findIndex(i => (i.dt - now) / 60000 > 0);
     if(autoIndex === -1) autoIndex = 0;
+    
     let activeIndex = Math.min(autoIndex + manualSkip, items.length - 1);
     const cur = items[activeIndex];
     const diff = (cur.dt - now) / 60000;
     let isWarning = diff <= 25 && diff >= 0;
     
-    document.getElementById('dayLabel').textContent = "PLAN: " + cur.dayName;
     const list = document.getElementById('planList');
     list.innerHTML = "";
    
-    let currentDayInList = items[0].dayName;
+    let lastRenderedDay = "";
     items.forEach((i, idx) => {
-        if (i.dayName !== currentDayInList) {
+        // Prikazuje naslov dana samo kada se dan promeni u listi
+        if (i.dayName !== lastRenderedDay) {
             const sep = document.createElement("div");
-            sep.className = "day-sep"; sep.textContent = i.dayName;
+            sep.className = "day-sep";
+            sep.textContent = i.dayName;
             list.appendChild(sep);
-            currentDayInList = i.dayName;
+            lastRenderedDay = i.dayName;
         }
+
         const isCur = idx === activeIndex;
         const infoText = infos[i.key] || "";
         const div = document.createElement("div");
@@ -145,7 +150,13 @@ function update() {
         div.oncontextmenu = (e) => { e.preventDefault(); handleLongPress(i.key); };
         
         div.className = `delivery-item flex items-center justify-between ${isCur ? (isWarning ? 'active-yellow-item' : 'active-white') : ''}`;
-        div.innerHTML = `<div class="flex items-center gap-2 pointer-events-none"><span class="font-mono font-black text-sm">${i.time}</span><span class="text-[11px] font-bold uppercase truncate">${i.label}</span></div>${infoText ? `<div class="info-tag">!! INFO</div>` : ''}`;
+        div.innerHTML = `
+            <div class="flex items-center gap-2 pointer-events-none">
+                <span class="font-mono font-black text-sm">${i.time}</span>
+                <span class="text-[11px] font-bold uppercase truncate">${i.label}</span>
+            </div>
+            ${infoText ? `<div class="info-tag">!! INFO</div>` : ''}
+        `;
         list.appendChild(div);
     });
   
