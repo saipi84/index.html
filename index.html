@@ -19,43 +19,45 @@
     body {
         font-family: 'Inter', sans-serif;
         background: #020617;
-        background: radial-gradient(circle at top left, #1e293b 0%, #0f172a 40%, #020617 100%);
-        margin: 0; height: 100vh; width: 100vw; overflow: hidden;
-        display: flex; flex-direction: column;
-        /* Ovo spušta sadržaj ispod sistemskih ikona (sat/baterija) */
-        padding: env(safe-area-inset-top) 10px 10px 10px;
+        margin: 0; 
+        height: 100vh; 
+        width: 100vw; 
+        overflow: hidden;
+        display: flex; 
+        flex-direction: column; 
+        /* Padding-top je ključan: env(safe-area-inset-top) gura sadržaj ISPOD sata i linka */
+        padding: calc(env(safe-area-inset-top) + 15px) 12px 12px 12px;
     }
-    .glass { backdrop-filter: blur(16px) saturate(180%); background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass { backdrop-filter: blur(16px); background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
     .btn-premium { background: white; color: #020617; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
     
     #main-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-    #planList { flex: 1; overflow-y: auto; padding-bottom: 30px; -webkit-overflow-scrolling: touch; }
+    #planList { flex: 1; overflow-y: auto; padding-bottom: 40px; -webkit-overflow-scrolling: touch; }
     #planList::-webkit-scrollbar { display: none; }
 
     .delivery-item {
         background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.5rem; padding: 12px; margin-bottom: 8px;
+        border-radius: 0.75rem; padding: 14px; margin-bottom: 10px;
         color: white !important;
     }
-    .active-white { background: rgba(255, 255, 255, 0.25) !important; border: 2px solid rgba(255, 255, 255, 0.9) !important; }
-    .active-yellow-item { background: rgba(251, 191, 36, 0.2) !important; border: 3px solid #fbbf24 !important; }
+    .active-white { background: rgba(255, 255, 255, 0.2) !important; border: 2px solid rgba(255, 255, 255, 0.8) !important; }
+    .active-yellow-item { background: rgba(251, 191, 36, 0.15) !important; border: 3px solid #fbbf24 !important; }
     
-    #fTime { font-size: clamp(55px, 9vh, 85px); line-height: 1; font-weight: 900; }
-    #fPlace { font-size: clamp(18px, 2.5vh, 26px); font-weight: 800; }
-    #fSub { font-size: 14px; }
+    #fTime { font-size: clamp(50px, 8vh, 80px); line-height: 1; font-weight: 900; }
+    #fPlace { font-size: clamp(16px, 2.2vh, 24px); font-weight: 800; }
     
-    #fInfo { font-size: 20px; color: #ff3131 !important; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
+    #fInfo { font-size: 18px; color: #ff3131 !important; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
     .info-tag { color: #ff3131 !important; font-weight: 900; font-size: 11px; animation: blinkInfo 1s infinite; }
 
     @keyframes yellowPulse { 
-        0% { border-color: rgba(255, 255, 255, 0.1); box-shadow: 0 0 0 transparent; } 
-        100% { border-color: #fbbf24; box-shadow: 0 0 30px rgba(251, 191, 36, 0.5); } 
+        0% { border-color: rgba(255, 255, 255, 0.1); } 
+        100% { border-color: #fbbf24; box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); } 
     }
-    .blink-warning { animation: yellowPulse 0.8s infinite alternate ease-in-out; border-width: 4px !important; }
+    .blink-warning { animation: yellowPulse 0.8s infinite alternate ease-in-out; }
     @keyframes blinkInfo { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     
-    .day-sep { border-bottom: 2px solid rgba(255,255,255,0.5); margin: 15px 0 10px; font-size: 13px; font-weight: 900; color: #ffffff !important; text-transform: uppercase; }
-    .progress-container { width: 100%; height: 8px; background: rgba(0, 0, 0, 0.5); border-radius: 99px; margin: 8px 0; overflow: hidden; }
+    .day-sep { border-bottom: 1px solid rgba(255,255,255,0.3); margin: 20px 0 10px; font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    .progress-container { width: 100%; height: 6px; background: rgba(0, 0, 0, 0.4); border-radius: 99px; margin: 10px 0; overflow: hidden; }
     #flowBar { height: 100%; width: 0%; transition: width 1s linear; }
 </style>
 </head>
@@ -63,28 +65,27 @@
 
 <div id="main-container">
     <section id="header-part" class="shrink-0">
-        <header class="flex justify-between items-center px-4 py-2 glass rounded-2xl mb-3">
-            <h1 class="text-xs font-black text-white italic tracking-tighter uppercase">ZSVA Dashboard</h1>
-            <div id="fullDate" class="text-[10px] font-bold text-white/90 bg-black/30 px-3 py-1 rounded-lg border border-white/10"></div>
+        <header class="flex justify-between items-center px-4 py-2 glass rounded-2xl mb-4">
+            <h1 class="text-[10px] font-black text-white italic tracking-widest uppercase">ZSVA AUTHORITY</h1>
+            <div id="fullDate" class="text-[10px] font-bold text-white/70"></div>
         </header>
 
-        <div id="focusBox" class="glass rounded-[1.5rem] w-full border-2 p-4 flex flex-col justify-center items-center transition-all duration-300 shadow-2xl mb-4">
+        <div id="focusBox" class="glass rounded-[2rem] w-full border-2 p-6 flex flex-col justify-center items-center shadow-2xl mb-6">
             <div id="fTime" class="text-white tracking-tighter"></div>
             <div class="progress-container"><div id="flowBar"></div></div>
-            <div id="fPlace" class="text-white tracking-tight leading-tight text-center"></div>
-            <div id="fSub" class="font-semibold text-slate-300 italic mb-1"></div>
-            <div id="fInfo" class="mb-3 text-center"></div>
-            <button onclick="markDone()" class="btn-premium w-full py-3.5 rounded-xl text-lg font-black active:scale-95 uppercase tracking-widest">ABHOLBEREIT</button>
+            <div id="fPlace" class="text-white tracking-tight leading-tight text-center mb-1"></div>
+            <div id="fSub" class="font-medium text-slate-400 italic mb-2 text-sm"></div>
+            <div id="fInfo" class="mb-4 text-center"></div>
+            <button onclick="markDone()" class="btn-premium w-full py-4 rounded-2xl text-lg font-black active:scale-95 uppercase tracking-widest">ABHOLBEREIT</button>
         </div>
         
-        <h2 id="dayLabel" class="text-white font-black mb-2 px-1 uppercase text-[11px] tracking-widest border-b border-white/20 pb-1">LIEFERPLAN</h2>
+        <h2 class="text-white/50 font-black mb-3 px-1 uppercase text-[10px] tracking-[0.2em]">LIEFERPLAN</h2>
     </section>
 
     <section id="planList"></section>
 </div>
 
 <script>
-// Logic remains same to ensure full functionality
 const planWeekdayBase = [{time:"05:00",label:"Grabs | Haus 02 | Haus 04 A | Haus 20"},{time:"05:15",label:"OP 03 | Haus 03"},{time:"05:45",label:"Wil"},{time:"06:00",label:"OP 06 und SG35"},{time:"06:20",label:"OP 07"},{time:"06:30",label:"Haus 03 Uro"},{time:"07:20",label:"Haus 06"},{time:"08:00",label:"Haus 07A"},{time:"08:45",label:"OP 03"},{time:"09:55",label:"OP 07"},{time:"10:40",label:"OP 06 (SG35)"},{time:"10:45",label:"OP Uznach"},{time:"11:40",label:"OP 03 | OP 07"},{time:"13:00",label:"OKS"},{time:"13:25",label:"OP 07"},{time:"14:10",label:"OP 03"},{time:"14:30",label:"OP 07"},{time:"14:40",label:"OP 06 (und SG35)"},{time:"15:50",label:"OP 07"},{time:"16:00",label:"Wil"},{time:"16:40",label:"OP 03"},{time:"17:30",label:"Grabs"},{time:"18:00",label:"OP 06 (SG35)"},{time:"18:15",label:"OP 03"},{time:"18:30",label:"OP Uznach"},{time:"19:45",label:"OP 07"},{time:"20:25",label:"OP 03"},{time:"21:40",label:"OP 03"}];
 const planSaturday = [{time:"05:45",label:"Wil"},{time:"08:00",label:"OP 03 | OP 07 | Haus 03A, URO"},{time:"08:20",label:"OP 06 | SG35"},{time:"10:20",label:"Grabs"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"}];
 const planSunday = [{time:"05:45",label:"Wil"},{time:"08:00",label:"OP 03 | OP 07 | Haus 03A"},{time:"08:20",label:"OP 06 SG35"},{time:"09:00",label:"OKS"},{time:"10:00",label:"Grabs"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"},{time:"19:00",label:"OP 06 (& SG35) nur OP"}];
@@ -125,8 +126,7 @@ function update() {
         list.appendChild(div);
     });
   
-    const activeEl = document.getElementById('active-delivery-item');
-    if (activeEl) { activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    if (document.getElementById('active-delivery-item')) { document.getElementById('active-delivery-item').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 
     document.getElementById('fTime').textContent = cur.time;
     document.getElementById('fPlace').textContent = cur.label;
