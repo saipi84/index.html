@@ -6,10 +6,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ZSVA Dashboard">
-<meta name="theme-color" content="#020617"> <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
 
-<title>ZSVA St. Gallen – Dashboard</title>
+<link rel="manifest" href="manifest.json">
+
+<title>ZSVA Dashboard</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -17,16 +18,18 @@
 <style>
     body {
         font-family: 'Inter', sans-serif;
+        background: #020617;
         background: radial-gradient(circle at top left, #1e293b 0%, #0f172a 40%, #020617 100%);
         margin: 0; height: 100vh; width: 100vw; overflow: hidden;
-        display: flex; flex-direction: column; padding: 10px;
-        padding-top: env(safe-area-inset-top);
+        display: flex; flex-direction: column;
+        /* Ovo spušta sadržaj ispod sistemskih ikona (sat/baterija) */
+        padding: env(safe-area-inset-top) 10px 10px 10px;
     }
     .glass { backdrop-filter: blur(16px) saturate(180%); background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
     .btn-premium { background: white; color: #020617; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
     
     #main-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-    #planList { flex: 1; overflow-y: auto; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
+    #planList { flex: 1; overflow-y: auto; padding-bottom: 30px; -webkit-overflow-scrolling: touch; }
     #planList::-webkit-scrollbar { display: none; }
 
     .delivery-item {
@@ -37,11 +40,11 @@
     .active-white { background: rgba(255, 255, 255, 0.25) !important; border: 2px solid rgba(255, 255, 255, 0.9) !important; }
     .active-yellow-item { background: rgba(251, 191, 36, 0.2) !important; border: 3px solid #fbbf24 !important; }
     
-    #fTime { font-size: clamp(60px, 10vh, 90px); line-height: 1; font-weight: 900; }
-    #fPlace { font-size: clamp(18px, 3vh, 28px); font-weight: 800; }
-    #fSub { font-size: 16px; }
+    #fTime { font-size: clamp(55px, 9vh, 85px); line-height: 1; font-weight: 900; }
+    #fPlace { font-size: clamp(18px, 2.5vh, 26px); font-weight: 800; }
+    #fSub { font-size: 14px; }
     
-    #fInfo { font-size: 22px; color: #ff3131 !important; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
+    #fInfo { font-size: 20px; color: #ff3131 !important; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
     .info-tag { color: #ff3131 !important; font-weight: 900; font-size: 11px; animation: blinkInfo 1s infinite; }
 
     @keyframes yellowPulse { 
@@ -51,17 +54,17 @@
     .blink-warning { animation: yellowPulse 0.8s infinite alternate ease-in-out; border-width: 4px !important; }
     @keyframes blinkInfo { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     
-    .day-sep { border-bottom: 2px solid rgba(255,255,255,0.5); margin: 20px 0 10px; font-size: 14px; font-weight: 900; color: #ffffff !important; text-transform: uppercase; }
-    .progress-container { width: 100%; height: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 99px; margin: 10px 0; overflow: hidden; }
+    .day-sep { border-bottom: 2px solid rgba(255,255,255,0.5); margin: 15px 0 10px; font-size: 13px; font-weight: 900; color: #ffffff !important; text-transform: uppercase; }
+    .progress-container { width: 100%; height: 8px; background: rgba(0, 0, 0, 0.5); border-radius: 99px; margin: 8px 0; overflow: hidden; }
     #flowBar { height: 100%; width: 0%; transition: width 1s linear; }
 </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
 <div id="main-container">
     <section id="header-part" class="shrink-0">
         <header class="flex justify-between items-center px-4 py-2 glass rounded-2xl mb-3">
-            <h1 class="text-sm font-black text-white italic tracking-tighter uppercase">ZSVA Dashboard</h1>
+            <h1 class="text-xs font-black text-white italic tracking-tighter uppercase">ZSVA Dashboard</h1>
             <div id="fullDate" class="text-[10px] font-bold text-white/90 bg-black/30 px-3 py-1 rounded-lg border border-white/10"></div>
         </header>
 
@@ -71,16 +74,17 @@
             <div id="fPlace" class="text-white tracking-tight leading-tight text-center"></div>
             <div id="fSub" class="font-semibold text-slate-300 italic mb-1"></div>
             <div id="fInfo" class="mb-3 text-center"></div>
-            <button onclick="markDone()" class="btn-premium w-full py-4 rounded-xl text-xl font-black active:scale-95 uppercase tracking-widest">ABHOLBEREIT</button>
+            <button onclick="markDone()" class="btn-premium w-full py-3.5 rounded-xl text-lg font-black active:scale-95 uppercase tracking-widest">ABHOLBEREIT</button>
         </div>
         
-        <h2 id="dayLabel" class="text-white font-black mb-2 px-1 uppercase text-[12px] tracking-widest border-b border-white/20 pb-1">LIEFERPLAN</h2>
+        <h2 id="dayLabel" class="text-white font-black mb-2 px-1 uppercase text-[11px] tracking-widest border-b border-white/20 pb-1">LIEFERPLAN</h2>
     </section>
 
-    <section id="planList" class="flex-1"></section>
+    <section id="planList"></section>
 </div>
 
 <script>
+// Logic remains same to ensure full functionality
 const planWeekdayBase = [{time:"05:00",label:"Grabs | Haus 02 | Haus 04 A | Haus 20"},{time:"05:15",label:"OP 03 | Haus 03"},{time:"05:45",label:"Wil"},{time:"06:00",label:"OP 06 und SG35"},{time:"06:20",label:"OP 07"},{time:"06:30",label:"Haus 03 Uro"},{time:"07:20",label:"Haus 06"},{time:"08:00",label:"Haus 07A"},{time:"08:45",label:"OP 03"},{time:"09:55",label:"OP 07"},{time:"10:40",label:"OP 06 (SG35)"},{time:"10:45",label:"OP Uznach"},{time:"11:40",label:"OP 03 | OP 07"},{time:"13:00",label:"OKS"},{time:"13:25",label:"OP 07"},{time:"14:10",label:"OP 03"},{time:"14:30",label:"OP 07"},{time:"14:40",label:"OP 06 (und SG35)"},{time:"15:50",label:"OP 07"},{time:"16:00",label:"Wil"},{time:"16:40",label:"OP 03"},{time:"17:30",label:"Grabs"},{time:"18:00",label:"OP 06 (SG35)"},{time:"18:15",label:"OP 03"},{time:"18:30",label:"OP Uznach"},{time:"19:45",label:"OP 07"},{time:"20:25",label:"OP 03"},{time:"21:40",label:"OP 03"}];
 const planSaturday = [{time:"05:45",label:"Wil"},{time:"08:00",label:"OP 03 | OP 07 | Haus 03A, URO"},{time:"08:20",label:"OP 06 | SG35"},{time:"10:20",label:"Grabs"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"}];
 const planSunday = [{time:"05:45",label:"Wil"},{time:"08:00",label:"OP 03 | OP 07 | Haus 03A"},{time:"08:20",label:"OP 06 SG35"},{time:"09:00",label:"OKS"},{time:"10:00",label:"Grabs"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"},{time:"19:00",label:"OP 06 (& SG35) nur OP"}];
@@ -99,6 +103,7 @@ function update() {
     const cur = items[activeIndex];
     const diff = (cur.dt - now) / 60000;
     let isWarning = diff <= 25 && diff >= 0;
+    
     const list = document.getElementById('planList');
     list.innerHTML = "";
     let lastRenderedDay = "";
@@ -111,17 +116,18 @@ function update() {
             lastRenderedDay = i.dayName;
         }
         const isCur = idx === activeIndex;
-        const infoText = infos[i.key] || "";
         const div = document.createElement("div");
         if (isCur) div.id = "active-delivery-item";
         div.onclick = () => { if(!isCur) { manualSkip = idx - autoIndex; update(); } };
         div.oncontextmenu = (e) => { e.preventDefault(); handleLongPress(i.key); };
         div.className = `delivery-item flex items-center justify-between ${isCur ? (isWarning ? 'active-yellow-item' : 'active-white') : ''}`;
-        div.innerHTML = `<div class="flex items-center gap-2 pointer-events-none"><span class="font-mono font-black text-sm">${i.time}</span><span class="text-[11px] font-bold uppercase truncate">${i.label}</span></div>${infoText ? `<div class="info-tag">!! INFO</div>` : ''}`;
+        div.innerHTML = `<div class="flex items-center gap-2 pointer-events-none"><span class="font-mono font-black text-sm">${i.time}</span><span class="text-[11px] font-bold uppercase truncate">${i.label}</span></div>${infos[i.key] ? `<div class="info-tag">!! INFO</div>` : ''}`;
         list.appendChild(div);
     });
+  
     const activeEl = document.getElementById('active-delivery-item');
     if (activeEl) { activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+
     document.getElementById('fTime').textContent = cur.time;
     document.getElementById('fPlace').textContent = cur.label;
     const m = Math.round(diff);
@@ -131,8 +137,7 @@ function update() {
     bar.style.width = Math.max(0, Math.min(100, 100 - (diff / 25 * 100))) + "%";
     bar.style.background = isWarning ? "#fbbf24" : "#ffffff";
     const focusBox = document.getElementById('focusBox');
-    if (isWarning) { focusBox.classList.add('blink-warning'); } 
-    else { focusBox.classList.remove('blink-warning'); }
+    if (isWarning) focusBox.classList.add('blink-warning'); else focusBox.classList.remove('blink-warning');
 }
 
 function getFullItems() {
@@ -141,10 +146,7 @@ function getFullItems() {
     const createDay = (date) => {
         let dIdx = date.getDay();
         let plan = (dIdx >= 1 && dIdx <= 5) ? [...planWeekdayBase] : (dIdx === 6 ? [...planSaturday] : [...planSunday]);
-        if ((dIdx === 3 || dIdx === 5)) {
-            plan.push({time:"09:30", label:"Altstätten | Grabs"});
-            plan.sort((a, b) => a.time.localeCompare(b.time));
-        }
+        if ((dIdx === 3 || dIdx === 5)) { plan.push({time:"09:30", label:"Altstätten | Grabs"}); plan.sort((a, b) => a.time.localeCompare(b.time)); }
         return plan.map(i => {
             const [h,m] = i.time.split(":");
             const dt = new Date(date);
@@ -156,33 +158,17 @@ function getFullItems() {
 }
 
 function handleLongPress(key) {
-    const msg = prompt("WICHTIGE INFO EINGEBEN:", infos[key] || "");
-    if (msg !== null) {
-        if (msg.trim() === "") delete infos[key];
-        else infos[key] = msg;
-        localStorage.setItem("lieferInfos", JSON.stringify(infos));
-        update();
-    }
+    const msg = prompt("INFO:", infos[key] || "");
+    if (msg !== null) { if (msg.trim() === "") delete infos[key]; else infos[key] = msg; localStorage.setItem("lieferInfos", JSON.stringify(infos)); update(); }
 }
 
 function markDone() { manualSkip++; update(); }
 function updateClock() {
     const n = new Date();
-    const options = { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' };
-    document.getElementById('fullDate').textContent = n.toLocaleString('de-DE', options);
+    document.getElementById('fullDate').textContent = n.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// Service Worker Registracija (OBAVEZNO ZA ANDROID APP MOD)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
-      console.log('SW ok');
-    }).catch(err => {
-      console.log('SW error');
-    });
-  });
-}
-
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
 setInterval(updateClock, 1000);
 setInterval(update, 5000);
 updateClock();
