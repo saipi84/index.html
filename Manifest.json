@@ -1,22 +1,16 @@
 {
-  "short_name": "ZSVA",
-  "name": "ZSVA Authority Dashboard",
-  "description": "Dashboard for instrument sterilization tracking",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/1149/1149168.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/1149/1149168.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
-  ],
+  "name": "ZSVA Abholzeiten",
+  "short_name": "ZSVA Plan",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#020617",
-  "orientation": "portrait"
+  "description": "ZSVA Lieferplan Abholzeiten",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3063/3063822.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
