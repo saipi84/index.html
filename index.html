@@ -3,61 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#020617">
 
 <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZSVA Plan">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#020617">
 
-<title>ZSVA Dashboard</title>
+<title>ZSVA Abholzeiten</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 
 <style>
+    :root { --safe-top: env(safe-area-inset-top, 20px); }
     body {
         font-family: 'Inter', sans-serif;
         background: #020617;
-        margin: 0; 
-        height: 100vh; 
-        width: 100vw; 
+        margin: 0;
+        height: 100dvh; 
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        padding: calc(var(--safe-top) + 10px) 12px 12px 12px;
+        box-sizing: border-box;
         overflow: hidden;
-        display: flex; 
-        flex-direction: column; 
-        /* Padding-top je ključan: env(safe-area-inset-top) gura sadržaj ISPOD sata i linka */
-        padding: calc(env(safe-area-inset-top) + 15px) 12px 12px 12px;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     }
-    .glass { backdrop-filter: blur(16px); background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .btn-premium { background: white; color: #020617; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
-    
-    #main-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-    #planList { flex: 1; overflow-y: auto; padding-bottom: 40px; -webkit-overflow-scrolling: touch; }
+    .glass { backdrop-filter: blur(20px); background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .btn-premium { background: white; color: #020617; box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15); }
+    #main-container { display: flex; flex-direction: column; flex: 1; width: 100%; overflow: hidden; }
+    #planList { flex: 1; overflow-y: auto; padding-bottom: 30px; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
     #planList::-webkit-scrollbar { display: none; }
-
     .delivery-item {
         background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.75rem; padding: 14px; margin-bottom: 10px;
-        color: white !important;
+        border-radius: 1.25rem; padding: 18px; margin-bottom: 12px; color: white !important;
+        transition: transform 0.1s;
     }
+    .delivery-item:active { transform: scale(0.97); }
     .active-white { background: rgba(255, 255, 255, 0.2) !important; border: 2px solid rgba(255, 255, 255, 0.8) !important; }
     .active-yellow-item { background: rgba(251, 191, 36, 0.15) !important; border: 3px solid #fbbf24 !important; }
-    
-    #fTime { font-size: clamp(50px, 8vh, 80px); line-height: 1; font-weight: 900; }
-    #fPlace { font-size: clamp(16px, 2.2vh, 24px); font-weight: 800; }
-    
-    #fInfo { font-size: 18px; color: #ff3131 !important; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
+    #fTime { font-size: clamp(60px, 10vh, 90px); line-height: 0.9; font-weight: 900; letter-spacing: -3px; }
+    #fPlace { font-size: clamp(18px, 2.8vh, 26px); font-weight: 800; color: #fff; }
+    #fInfo { font-size: 20px; color: #ff3131 !important; text-transform: uppercase; font-weight: 900; animation: blinkInfo 0.8s infinite; }
     .info-tag { color: #ff3131 !important; font-weight: 900; font-size: 11px; animation: blinkInfo 1s infinite; }
-
-    @keyframes yellowPulse { 
-        0% { border-color: rgba(255, 255, 255, 0.1); } 
-        100% { border-color: #fbbf24; box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); } 
-    }
+    @keyframes yellowPulse { 0% { border-color: rgba(255, 255, 255, 0.1); } 100% { border-color: #fbbf24; box-shadow: 0 0 25px rgba(251, 191, 36, 0.4); } }
     .blink-warning { animation: yellowPulse 0.8s infinite alternate ease-in-out; }
     @keyframes blinkInfo { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    
-    .day-sep { border-bottom: 1px solid rgba(255,255,255,0.3); margin: 20px 0 10px; font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-    .progress-container { width: 100%; height: 6px; background: rgba(0, 0, 0, 0.4); border-radius: 99px; margin: 10px 0; overflow: hidden; }
+    .day-sep { border-bottom: 1px solid rgba(255,255,255,0.2); margin: 25px 0 12px; font-size: 13px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 2px; }
+    .progress-container { width: 100%; height: 8px; background: rgba(0, 0, 0, 0.4); border-radius: 99px; margin: 15px 0; overflow: hidden; }
     #flowBar { height: 100%; width: 0%; transition: width 1s linear; }
 </style>
 </head>
@@ -65,32 +63,33 @@
 
 <div id="main-container">
     <section id="header-part" class="shrink-0">
-        <header class="flex justify-between items-center px-4 py-2 glass rounded-2xl mb-4">
-            <h1 class="text-[10px] font-black text-white italic tracking-widest uppercase">ZSVA AUTHORITY</h1>
-            <div id="fullDate" class="text-[10px] font-bold text-white/70"></div>
+        <header class="flex justify-between items-center px-4 py-3 glass rounded-[1.5rem] mb-4">
+            <h1 class="text-[11px] font-black text-white italic tracking-[0.2em] uppercase">ZSVA ABHOLZEITEN</h1>
+            <div id="fullDate" class="text-[11px] font-bold text-white/80 font-mono"></div>
         </header>
 
-        <div id="focusBox" class="glass rounded-[2rem] w-full border-2 p-6 flex flex-col justify-center items-center shadow-2xl mb-6">
-            <div id="fTime" class="text-white tracking-tighter"></div>
+        <div id="focusBox" class="glass rounded-[2.5rem] w-full border-2 p-7 flex flex-col justify-center items-center shadow-2xl mb-6">
+            <div id="fTime" class="text-white"></div>
             <div class="progress-container"><div id="flowBar"></div></div>
-            <div id="fPlace" class="text-white tracking-tight leading-tight text-center mb-1"></div>
+            <div id="fPlace" class="text-center mb-1"></div>
             <div id="fSub" class="font-medium text-slate-400 italic mb-2 text-sm"></div>
             <div id="fInfo" class="mb-4 text-center"></div>
-            <button onclick="markDone()" class="btn-premium w-full py-4 rounded-2xl text-lg font-black active:scale-95 uppercase tracking-widest">ABHOLBEREIT</button>
+            <button onclick="markDone()" class="btn-premium w-full py-5 rounded-[1.5rem] text-2xl font-black active:scale-95 uppercase tracking-widest transition-all">ABHOLBEREIT</button>
         </div>
         
-        <h2 class="text-white/50 font-black mb-3 px-1 uppercase text-[10px] tracking-[0.2em]">LIEFERPLAN</h2>
+        <h2 class="text-white/30 font-black mb-3 px-1 uppercase text-[10px] tracking-[0.3em]">ZSVA PLAN</h2>
     </section>
 
     <section id="planList"></section>
 </div>
 
 <script>
-const planWeekdayBase = [{time:"05:00",label:"Grabs | Haus 02 | Haus 04 A | Haus 20"},{time:"05:15",label:"OP 03 | Haus 03"},{time:"05:45",label:"Wil"},{time:"06:00",label:"OP 06 und SG35"},{time:"06:20",label:"OP 07"},{time:"06:30",label:"Haus 03 Uro"},{time:"07:20",label:"Haus 06"},{time:"08:00",label:"Haus 07A"},{time:"08:45",label:"OP 03"},{time:"09:55",label:"OP 07"},{time:"10:40",label:"OP 06 (SG35)"},{time:"10:45",label:"OP Uznach"},{time:"11:40",label:"OP 03 | OP 07"},{time:"13:00",label:"OKS"},{time:"13:25",label:"OP 07"},{time:"14:10",label:"OP 03"},{time:"14:30",label:"OP 07"},{time:"14:40",label:"OP 06 (und SG35)"},{time:"15:50",label:"OP 07"},{time:"16:00",label:"Wil"},{time:"16:40",label:"OP 03"},{time:"17:30",label:"Grabs"},{time:"18:00",label:"OP 06 (SG35)"},{time:"18:15",label:"OP 03"},{time:"18:30",label:"OP Uznach"},{time:"19:45",label:"OP 07"},{time:"20:25",label:"OP 03"},{time:"21:40",label:"OP 03"}];
-const planSaturday = [{time:"05:45",label:"Wil"},{time:"08:00",label:"OP 03 | OP 07 | Haus 03A, URO"},{time:"08:20",label:"OP 06 | SG35"},{time:"10:20",label:"Grabs"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"}];
-const planSunday = [{time:"05:45",label:"Wil"},{time:"08:00",label:"OP 03 | OP 07 | Haus 03A"},{time:"08:20",label:"OP 06 SG35"},{time:"09:00",label:"OKS"},{time:"10:00",label:"Grabs"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"},{time:"19:00",label:"OP 06 (& SG35) nur OP"}];
+// ZSVA Plan Podaci
+const planWeekdayBase = [{time:"05:15",label:"OP 03 | Haus 03"},{time:"06:00",label:"OP 06 und SG35"},{time:"06:20",label:"OP 07"},{time:"06:30",label:"Haus 03 Uro"},{time:"08:45",label:"OP 03"},{time:"09:55",label:"OP 07"},{time:"10:40",label:"OP 06 (SG35)"},{time:"11:40",label:"OP 03 | OP 07"},{time:"13:25",label:"OP 07"},{time:"14:10",label:"OP 03"},{time:"14:30",label:"OP 07"},{time:"14:40",label:"OP 06 (und SG35)"},{time:"15:50",label:"OP 07"},{time:"16:40",label:"OP 03"},{time:"18:00",label:"OP 06 (SG35)"},{time:"18:15",label:"OP 03"},{time:"19:45",label:"OP 07"},{time:"20:25",label:"OP 03"},{time:"21:40",label:"OP 03"}];
+const planSaturday = [{time:"08:00",label:"OP 03 | OP 07 | Haus 03A, URO"},{time:"08:20",label:"OP 06 | SG35"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"}];
+const planSunday = [{time:"08:00",label:"OP 03 | OP 07 | Haus 03A"},{time:"08:20",label:"OP 06 SG35"},{time:"12:35",label:"OP 03"},{time:"17:30",label:"OP 03"},{time:"19:00",label:"OP 06 (& SG35) nur OP"}];
 
-let infos = JSON.parse(localStorage.getItem("lieferInfos")||"{}");
+let infos = JSON.parse(localStorage.getItem("zsvaInfos")||"{}");
 let manualSkip = 0;
 let lastUpdateDay = new Date().getDate();
 
@@ -104,17 +103,13 @@ function update() {
     const cur = items[activeIndex];
     const diff = (cur.dt - now) / 60000;
     let isWarning = diff <= 25 && diff >= 0;
-    
     const list = document.getElementById('planList');
     list.innerHTML = "";
     let lastRenderedDay = "";
     items.forEach((i, idx) => {
         if (i.dayName !== lastRenderedDay) {
-            const sep = document.createElement("div");
-            sep.className = "day-sep";
-            sep.textContent = i.dayName;
-            list.appendChild(sep);
-            lastRenderedDay = i.dayName;
+            const sep = document.createElement("div"); sep.className = "day-sep"; sep.textContent = i.dayName;
+            list.appendChild(sep); lastRenderedDay = i.dayName;
         }
         const isCur = idx === activeIndex;
         const div = document.createElement("div");
@@ -122,12 +117,10 @@ function update() {
         div.onclick = () => { if(!isCur) { manualSkip = idx - autoIndex; update(); } };
         div.oncontextmenu = (e) => { e.preventDefault(); handleLongPress(i.key); };
         div.className = `delivery-item flex items-center justify-between ${isCur ? (isWarning ? 'active-yellow-item' : 'active-white') : ''}`;
-        div.innerHTML = `<div class="flex items-center gap-2 pointer-events-none"><span class="font-mono font-black text-sm">${i.time}</span><span class="text-[11px] font-bold uppercase truncate">${i.label}</span></div>${infos[i.key] ? `<div class="info-tag">!! INFO</div>` : ''}`;
+        div.innerHTML = `<div class="flex items-center gap-3 pointer-events-none"><span class="font-mono font-black text-base">${i.time}</span><span class="text-[12px] font-bold uppercase truncate">${i.label}</span></div>${infos[i.key] ? `<div class="info-tag">!! INFO</div>` : ''}`;
         list.appendChild(div);
     });
-  
     if (document.getElementById('active-delivery-item')) { document.getElementById('active-delivery-item').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-
     document.getElementById('fTime').textContent = cur.time;
     document.getElementById('fPlace').textContent = cur.label;
     const m = Math.round(diff);
@@ -146,29 +139,30 @@ function getFullItems() {
     const createDay = (date) => {
         let dIdx = date.getDay();
         let plan = (dIdx >= 1 && dIdx <= 5) ? [...planWeekdayBase] : (dIdx === 6 ? [...planSaturday] : [...planSunday]);
-        if ((dIdx === 3 || dIdx === 5)) { plan.push({time:"09:30", label:"Altstätten | Grabs"}); plan.sort((a, b) => a.time.localeCompare(b.time)); }
         return plan.map(i => {
             const [h,m] = i.time.split(":");
-            const dt = new Date(date);
-            dt.setHours(h,m,0,0);
-            return {...i, dt, dayName: dayNames[dIdx], key: dayNames[dIdx] + "_" + i.time + "_" + i.label};
+            const dt = new Date(date); dt.setHours(h,m,0,0);
+            return {...i, dt, dayName: dayNames[dIdx], key: "zsva_" + dayNames[dIdx] + "_" + i.time};
         });
     };
     return [...createDay(now), ...createDay(new Date(now.getTime() + 86400000))];
 }
 
 function handleLongPress(key) {
-    const msg = prompt("INFO:", infos[key] || "");
-    if (msg !== null) { if (msg.trim() === "") delete infos[key]; else infos[key] = msg; localStorage.setItem("lieferInfos", JSON.stringify(infos)); update(); }
+    if (navigator.vibrate) navigator.vibrate(50);
+    const msg = prompt("ZSVA INFO:", infos[key] || "");
+    if (msg !== null) { 
+        if (msg.trim() === "") delete infos[key]; else infos[key] = msg; 
+        localStorage.setItem("zsvaInfos", JSON.stringify(infos)); update(); 
+    }
 }
 
-function markDone() { manualSkip++; update(); }
+function markDone() { if (navigator.vibrate) navigator.vibrate(50); manualSkip++; update(); }
 function updateClock() {
     const n = new Date();
     document.getElementById('fullDate').textContent = n.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
 setInterval(updateClock, 1000);
 setInterval(update, 5000);
 updateClock();
