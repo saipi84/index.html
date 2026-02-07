@@ -14,6 +14,8 @@
 <title>ZSVA Abholzeiten</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 
 <style>
@@ -128,7 +130,6 @@
         } 
     }
     
-    /* NOVA ANIMACIJA ZA CRVENO BLINKANJE INFO TEKSTA */
     @keyframes redTextBlink {
         0%, 100% { 
             color: #ff3131;
@@ -140,7 +141,6 @@
         }
     }
     
-    /* FORSIRAJ BLINKANJE - !important je ključan */
     .blink-warning {
         animation: yellowPulse 0.8s infinite alternate ease-in-out !important;
         border-color: #fbbf24 !important;
@@ -169,6 +169,19 @@
         width: 0%; 
         transition: width 1s linear; 
     }
+    
+    .sync-active {
+        background: rgba(59, 130, 246, 0.3) !important;
+        border-color: #3b82f6 !important;
+        color: white !important;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+        70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
 </style>
 </head>
 <body>
@@ -177,7 +190,13 @@
     <section id="header-part" class="shrink-0">
         <header class="flex justify-between items-center px-4 py-3 glass rounded-[1.5rem] mb-4">
             <h1 class="text-[11px] font-black text-white italic tracking-[0.2em] uppercase">ZSVA ABHOLZEITEN</h1>
-            <div id="fullDate" class="text-[11px] font-bold text-white/80 font-mono"></div>
+            <div class="flex items-center gap-2">
+                <div id="fullDate" class="text-[11px] font-bold text-white/80 font-mono"></div>
+                <button onclick="toggleSync()" id="syncBtn" 
+                        class="text-xs px-2 py-1 rounded-full bg-gray-800 text-gray-300">
+                    🔄 OFF
+                </button>
+            </div>
         </header>
 
         <div id="focusBox" class="glass rounded-[2.5rem] w-full border-2 p-7 flex flex-col justify-center items-center shadow-2xl mb-6">
@@ -200,7 +219,19 @@
 </div>
 
 <script>
-// VAŠI ORIGINALNI PODACI
+// ========== FIREBASE KONFIGURACIJA ==========
+// ZAMENI OVAJ OBJEKAT SA TVOJIM PODACIMA SA FIREBASE KONZOLE
+const firebaseConfig = {
+    apiKey: "FIREBASE_CONFIG_OVDE",
+    authDomain: "FIREBASE_CONFIG_OVDE",
+    databaseURL: "FIREBASE_CONFIG_OVDE",
+    projectId: "FIREBASE_CONFIG_OVDE",
+    storageBucket: "FIREBASE_CONFIG_OVDE",
+    messagingSenderId: "FIREBASE_CONFIG_OVDE",
+    appId: "FIREBASE_CONFIG_OVDE"
+};
+
+// ========== GLOBALNE VARIJABLE ==========
 const planWeekdayBase = [
     {time:"05:00",label:"Grabs | Haus 02 | Haus 04 A | Haus 20"},
     {time:"05:15",label:"OP 03 | Haus 03"},
@@ -252,11 +283,131 @@ const planSunday = [
     {time:"19:00",label:"OP 06 (& SG35) nur OP"}
 ];
 
-// VAŠ ORIGINAL: lieferInfos
 let infos = JSON.parse(localStorage.getItem("lieferInfos") || "{}");
 let manualSkip = 0;
 let lastUpdateDay = new Date().getDate();
+let db = null;
+let deviceId = 'device_' + Math.floor(Math.random() * 10000);
+let syncEnabled = false;
 
+// ========== INICIJALIZACIJA FIREBASE ==========
+function initFirebase() {
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        console.log("✅ Firebase spojen!");
+        
+        // Testiraj konekciju
+        db.ref('testConnection').set({
+            deviceId: deviceId,
+            connectedAt: Date.now(),
+            message: "ZSVA App test"
+        }).then(() => {
+            console.log("✅ Test podaci poslati na Firebase");
+        });
+        
+        return true;
+    } catch (error) {
+        console.log("❌ Firebase greška:", error);
+        return false;
+    }
+}
+
+// ========== SINHRONIZACIJA FUNKCIJE ==========
+function toggleSync() {
+    syncEnabled = !syncEnabled;
+    const syncBtn = document.getElementById('syncBtn');
+    
+    if (syncEnabled) {
+        // Proveri da li je Firebase inicijalizovan
+        if (!db) {
+            if (!initFirebase()) {
+                alert("Firebase nije spojen. Proveri konfiguraciju.");
+                syncEnabled = false;
+                return;
+            }
+        }
+        
+        syncBtn.innerHTML = '🔄 ON';
+        syncBtn.className = 'text-xs px-2 py-1 rounded-full bg-green-900 text-green-300 sync-active';
+        startSync();
+    } else {
+        syncBtn.innerHTML = '🔄 OFF';
+        syncBtn.className = 'text-xs px-2 py-1 rounded-full bg-gray-800 text-gray-300';
+        stopSync();
+    }
+}
+
+function startSync() {
+    if (!db) return;
+    
+    // Pošalji naše infos na server
+    db.ref('devices/' + deviceId).set({
+        infos: infos,
+        lastUpdate: Date.now(),
+        deviceName: navigator.userAgent.substring(0, 50)
+    });
+    
+    // Slušaj promene od drugih uređaja
+    db.ref('devices').on('value', (snapshot) => {
+        const devices = snapshot.val() || {};
+        let allInfos = {};
+        
+        // Spoji sve infos iz svih uređaja
+        Object.values(devices).forEach(device => {
+            if (device.infos) {
+                allInfos = { ...allInfos, ...device.infos };
+            }
+        });
+        
+        // Ažuriraj naše infos samo ako postoje novi
+        if (Object.keys(allInfos).length > 0) {
+            infos = { ...infos, ...allInfos };
+            localStorage.setItem("lieferInfos", JSON.stringify(infos));
+            update();
+        }
+    });
+    
+    // Slušaj notifikacije
+    db.ref('notifications').on('child_added', (snapshot) => {
+        const notification = snapshot.val();
+        if (notification.deviceId !== deviceId) {
+            showNotification(notification);
+        }
+    });
+}
+
+function stopSync() {
+    if (!db) return;
+    db.ref('devices').off();
+    db.ref('notifications').off();
+}
+
+function showNotification(notif) {
+    // Stvori privremeni notification banner
+    const notificationEl = document.createElement('div');
+    notificationEl.className = 'notification-banner';
+    notificationEl.innerHTML = `
+        <div class="bg-yellow-900/50 border border-yellow-500 rounded-xl p-3 mb-2">
+            <div class="text-xs text-yellow-300">📢 Drugi uređaj:</div>
+            <div class="text-white font-bold">${notif.label} - ${notif.time}</div>
+            <div class="text-xs text-gray-400">označeno kao završeno</div>
+        </div>
+    `;
+    
+    // Dodaj na vrh liste
+    const planList = document.getElementById('planList');
+    planList.insertBefore(notificationEl, planList.firstChild);
+    
+    // Ukloni nakon 5 sekundi
+    setTimeout(() => {
+        if (notificationEl.parentNode) {
+            notificationEl.remove();
+        }
+    }, 5000);
+}
+
+// ========== ORIGINALNE FUNKCIJE ==========
 function update() {
     const now = new Date();
     const items = generatePlan();
@@ -271,15 +422,13 @@ function update() {
     let autoIndex = items.findIndex(i => i.dt > now);
     if (autoIndex === -1) autoIndex = 0;
     
-    // VAŠ AUTO-SKIP: Ako trenutni termin prođe, automatski pređi na sledeći
+    // Auto-skip
     if (items.length > 0) {
         const currentActiveIndex = Math.min(autoIndex + manualSkip, items.length - 1);
         if (currentActiveIndex < items.length) {
             const currentItem = items[currentActiveIndex];
-            // Proveri da li je termin prošao (više od 1 minute)
             if (currentItem && (now - currentItem.dt) > 60000) {
                 manualSkip++;
-                // Reset ako smo došli do kraja
                 if (autoIndex + manualSkip >= items.length) {
                     manualSkip = 0;
                 }
@@ -291,10 +440,9 @@ function update() {
     const cur = items[activeIndex];
     const diff = (cur.dt - now) / 60000;
     
-    // VAŽNO: SVE SE DEŠAVA SAMO ZADNJIH 20 MINUTA!
-    let shouldBlink = diff <= 20 && diff >= 0; // Ram blinka
-    let shouldFillBar = diff <= 20 && diff >= 0; // Linija se puni
-    let shouldBeYellowInList = diff <= 20 && diff >= 0; // Žuta u listi
+    let shouldBlink = diff <= 20 && diff >= 0;
+    let shouldFillBar = diff <= 20 && diff >= 0;
+    let shouldBeYellowInList = diff <= 20 && diff >= 0;
     
     // Renderuj listu
     const list = document.getElementById('planList');
@@ -302,7 +450,6 @@ function update() {
     let lastRenderedDay = "";
     
     items.forEach((i, idx) => {
-        // Dodaj separator za novi dan
         if (i.dayName !== lastRenderedDay) {
             const sep = document.createElement("div");
             sep.className = "day-sep";
@@ -316,7 +463,6 @@ function update() {
         
         if (isCur) div.id = "active-delivery-item";
         
-        // Klik za manual skip
         div.onclick = () => { 
             if(!isCur) { 
                 manualSkip = idx - autoIndex; 
@@ -324,7 +470,6 @@ function update() {
             } 
         };
         
-        // Long press za info - VAŠ ORIGINAL
         div.oncontextmenu = (e) => { 
             e.preventDefault(); 
             handleLongPress(i.key); 
@@ -349,14 +494,14 @@ function update() {
         }); 
     }
 
-    // VAŠ ORIGINAL: Ažuriraj fokus box
+    // Ažuriraj fokus box
     document.getElementById('fTime').textContent = cur.time;
     document.getElementById('fPlace').textContent = cur.label;
     
     const m = Math.round(diff);
     document.getElementById('fSub').textContent = (m > 0) ? `in ${m} Minuten` : (m < -60) ? `${Math.abs(Math.round(m/60))} Stunden her` : "JETZT";
     
-    // PROMENA OVDE: Info u glavnom ramu - CRVENO BLINKANJE
+    // Info u glavnom ramu
     const fInfo = document.getElementById('fInfo');
     if (infos[cur.key]) {
         fInfo.textContent = "ℹ️ " + infos[cur.key];
@@ -371,20 +516,17 @@ function update() {
         fInfo.style.color = "";
     }
     
-    // VAŠ ORIGINAL: Progress bar - SAMO ZADNJIH 20 MINUTA
+    // Progress bar
     let perc = 0;
     let barColor = "#3b82f6";
     
     if (shouldFillBar) {
-        // SAMO ZADNJIH 20 MINUTA: zuta linija koja se puni
         perc = Math.max(0, Math.min(100, 100 - (diff / 20) * 100));
         barColor = "#fbbf24";
     } else if (diff > 20) {
-        // VIŠE OD 20 MINUTA: linija se NE PUNI
         perc = 0;
         barColor = "#3b82f6";
     } else {
-        // PROŠLO VREME: puna siva linija
         perc = 100;
         barColor = "#6b7280";
     }
@@ -392,7 +534,7 @@ function update() {
     document.getElementById('flowBar').style.width = perc + "%";
     document.getElementById('flowBar').style.background = barColor;
     
-    // VAŠ ORIGINAL: Ram blinka SAMO zadnjih 20 minuta - FORSIRANO!
+    // Ram blinka
     const focusBox = document.getElementById('focusBox');
     focusBox.classList.remove('blink-warning');
     focusBox.style.borderColor = '';
@@ -402,7 +544,6 @@ function update() {
     if (shouldBlink) {
         focusBox.classList.add('blink-warning');
     } else {
-        // Eksplicitno vrati na normalno stanje
         focusBox.style.cssText += 'border-color: rgba(255, 255, 255, 0.1) !important; border-width: 2px !important; box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15) !important;';
     }
 }
@@ -415,8 +556,7 @@ function generatePlan() {
         let dIdx = date.getDay();
         let plan = (dIdx >= 1 && dIdx <= 5) ? [...planWeekdayBase] : (dIdx === 6 ? [...planSaturday] : [...planSunday]);
         
-        // VAŠ ORIGINAL: Dodaj specijalne termine za četvrtak i petak
-        if (dIdx === 4 || dIdx === 6) { // 4 = Donnerstag, 6 = Freitag
+        if (dIdx === 4 || dIdx === 6) {
             plan.push({time:"09:30", label:"Altstätten | Grabs"});
             plan.sort((a, b) => a.time.localeCompare(b.time));
         }
@@ -437,7 +577,6 @@ function generatePlan() {
     return [...createDay(now), ...createDay(new Date(now.getTime() + 86400000))];
 }
 
-// VAŠ ORIGINAL: handleLongPress funkcija
 function handleLongPress(key) {
     const msg = prompt("INFO:", infos[key] || "");
     if (msg !== null) { 
@@ -447,18 +586,40 @@ function handleLongPress(key) {
             infos[key] = msg;
         }
         localStorage.setItem("lieferInfos", JSON.stringify(infos));
+        
+        // Ako je sinhronizacija uključena, pošalji na server
+        if (syncEnabled && db) {
+            db.ref('devices/' + deviceId + '/infos/' + key.replace(/[.#$/[\]]/g, '_')).set(infos[key] || null);
+        }
+        
         update();
         
-        // Vibracija za feedback
         if (navigator.vibrate) navigator.vibrate(50);
     }
 }
 
-// VAŠ ORIGINAL: markDone funkcija
 function markDone() {
-    // Vibracija za feedback
     if (navigator.vibrate) navigator.vibrate(50);
     manualSkip++;
+    
+    // Ako je sinhronizacija uključena, pošalji notifikaciju
+    if (syncEnabled && db) {
+        const now = new Date();
+        const items = generatePlan();
+        const activeIndex = Math.min(
+            items.findIndex(i => i.dt > now) + manualSkip, 
+            items.length - 1
+        );
+        const cur = items[activeIndex];
+        
+        db.ref('notifications').push({
+            deviceId: deviceId,
+            time: cur.time,
+            label: cur.label,
+            timestamp: Date.now()
+        });
+    }
+    
     update();
 }
 
@@ -472,6 +633,7 @@ function updateClock() {
     });
 }
 
+// ========== POKRETANJE APLIKACIJE ==========
 // Registruj Service Worker za PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -490,6 +652,9 @@ setInterval(updateClock, 1000);
 setInterval(update, 5000);
 updateClock();
 update();
+
+// Inicijalizuj Firebase (bez uključivanja sinhronizacije)
+initFirebase();
 </script>
 </body>
 </html>
