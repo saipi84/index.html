@@ -1,5 +1,6 @@
+// firebase-config.js
 const firebaseConfig = {
-  apiKey: "AIzaSyBXToxoncJIm7gRHYem4584EpoW_6bfwRU",
+  apiKey: "AIzaSyBXTOxoncJIm7gRHYem4584Epw6_fbwRU",
   authDomain: "zsva-plan.firebaseapp.com",
   databaseURL: "https://zsva-plan-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "zsva-plan",
@@ -9,6 +10,5 @@ const firebaseConfig = {
   measurementId: "G-YGFT1B9M3R"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// SAMO OVO OSTAVI!
+window.firebaseConfig = firebaseConfig;
